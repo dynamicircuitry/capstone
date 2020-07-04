@@ -62,7 +62,6 @@ Resources:
                 - Key: Name
                   Value: !Sub ${EnvironmentName} Public Subnet
 
-
     PrivateSubnet:
         Type: AWS::EC2::Subnet
         Properties:
@@ -128,6 +127,117 @@ Resources:
         Properties:
             RouteTableId: !Ref PrivateRouteTable
             SubnetId: !Ref PrivateSubnet
+
+    LB-SecGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow http to our load balancer
+        VpcId:
+          !Ref VPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+    KubeWebLB:
+      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Properties:
+        Subnets:
+        - !Ref PublicSubnet
+        SecurityGroups:
+        - Ref: LB-SecGroup
+    Listener:
+      Type: AWS::ElasticLoadBalancingV2::Listener
+      Properties:
+        DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: WebAppTargetGroup
+        LoadBalancerArn:
+          Ref: KubeWebLB
+        Port: '80'
+        Protocol: HTTP
+    ALBListenerRule:
+        Type: AWS::ElasticLoadBalancingV2::ListenerRule
+        Properties:
+          Actions:
+          - Type: forward
+            TargetGroupArn: !Ref 'KubeWebTargetGroup'
+          Conditions:
+          - Field: path-pattern
+            Values: [/]
+          ListenerArn: !Ref 'Listener'
+          Priority: 1
+    KubeWebTargetGroup:
+      Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+      Properties:
+        HealthCheckIntervalSeconds: 10
+        HealthCheckPath: /
+        HealthCheckProtocol: HTTP
+        HealthCheckTimeoutSeconds: 8
+        HealthyThresholdCount: 2
+        Port: 80
+        Protocol: HTTP
+        UnhealthyThresholdCount: 4
+        VpcId:
+          !Ref VPC
+        TargetGroupAttributes:
+          - Key: stickiness.enabled
+            Value: 'true'
+          - Key: stickiness.type
+            Value: lb_cookie
+          - Key: stickiness.lb_cookie.duration_seconds
+            Value: '30'
+
+    MGMT-SecGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow http to our load balancer
+        VpcId:
+          !Ref VPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+    Kube-SecGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Web - Requests, Control Plane Permit(TODO)
+        VpcId:
+          !Ref VPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Select
+          - 0
+          - !GetAtt
+            - KubeWebLB
+            - SecurityGroups
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          #SourceSecurityGroupId: !Select
+          #- 0
+          #- !GetAtt
+          #  - MGMT SERVER --TODO
+          #  - SecurityGroups
+        SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
 
 Outputs:
 
