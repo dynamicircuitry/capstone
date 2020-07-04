@@ -375,6 +375,13 @@ Outputs:
         Value: !Ref PrivateSubnet2
         Export:
           Name: !Sub ${EnvironmentName}-PRI2-SN
+
+    MgmtSecurityGroup:
+        Description: Management Security Group
+        Value: !Ref MgmtSecGroup
+        Export:
+          Name: !Sub ${EnvironmentName}-MGMT-SG
+
     URL:
       Description: HTTP LoadBalancer DNS
       Value: !Join

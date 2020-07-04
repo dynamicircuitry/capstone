@@ -1,0 +1,33 @@
+Description: >
+  Dave's Capstone Project
+
+Parameters:
+
+  EnvironmentName:
+    Description: Kubernetes Production Environment
+    Type: String
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+  AmiSelected:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type : "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+
+Resources:
+
+  MgmtHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SecurityGroups: [!Ref 'MgmtSecGroup']
+      KeyName: !Ref 'KeyName'
+      ImageId: !Ref 'AmiSelected'
+
+
+Outputs:
+
+  PublicDNS:
+    Description: Public DNSName of the newly created EC2 instance
+    Value: !GetAtt [MgmtHost, PublicDnsName]

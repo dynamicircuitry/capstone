@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-## Complete the following steps to get Docker running locally
+#PULL Code
+git clone https://github.com/dynamicircuitry/cap-code.git ./tmp-code/
 
-# Step 1:
+#BUILD
 echo "=> Building Docker Image..."
 docker build \
   --tag ud-capstone:latest \
-  --file Dockerfile .
+  --file Dockerfile ./tmp-code
 
-# Step 2:
-docker image ls
-
-## Step 3:
+#RUN
 docker run -d -p 8000:80 --log-driver local --name capstone ud-capstone:latest
+
+rm -rf ./tmp-code/
