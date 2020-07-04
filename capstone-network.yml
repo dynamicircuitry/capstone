@@ -157,7 +157,7 @@ Resources:
         DefaultActions:
         - Type: forward
           TargetGroupArn:
-            Ref: WebAppTargetGroup
+            Ref: KubeWebTargetGroup
         LoadBalancerArn:
           Ref: KubeWebLB
         Port: '80'
