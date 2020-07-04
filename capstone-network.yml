@@ -327,11 +327,18 @@ Outputs:
         Export:
           Name: !Sub ${EnvironmentName}-PUB-RT
 
-    VPCPrivateRouteTable:
-        Description: Private Routing AZ1
-        Value: !Ref PrivateRouteTable
+    VPCPrivateRouteTable1:
+        Description: Private Routing (AZ 1)
+        Value: !Ref PrivateRouteTable1
         Export:
-          Name: !Sub ${EnvironmentName}-PRI-RT
+          Name: !Sub ${EnvironmentName}-PRI1-RT
+
+    VPCPrivateRouteTable2:
+        Description: Private Routing (AZ 2)
+        Value: !Ref PrivateRouteTable2
+        Export:
+          Name: !Sub ${EnvironmentName}-PRI2-RT
+
 
     PublicSubnets:
         Description: A list of the public subnets
