@@ -1,0 +1,1 @@
+aws cloudformation create-stack --stack-name "Capstone-Mgmt-Net" --template-body file://"./kubemgmt-stack.yml"  --parameters file://"./kubemgmt-parameters.json" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" --region=us-east-2

@@ -14,14 +14,21 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type : "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-
 Resources:
 
   MgmtHost:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      SecurityGroups: [!Ref 'MgmtSecGroup']
+      SubnetId: 
+        Fn::ImportValue: 
+          !Sub "${EnvironmentName}-PUB1-SN"
+      SecurityGroupIds: !Split 
+          - ","
+          - !Join 
+              - "," 
+              - - Fn::ImportValue:
+                    !Sub "${EnvironmentName}-MGMT-SG"
       KeyName: !Ref 'KeyName'
       ImageId: !Ref 'AmiSelected'
 
@@ -29,5 +36,5 @@ Resources:
 Outputs:
 
   PublicDNS:
-    Description: Public DNSName of the newly created EC2 instance
+    Description: Mgmt Host Public DNS
     Value: !GetAtt [MgmtHost, PublicDnsName]

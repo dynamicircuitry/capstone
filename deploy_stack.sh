@@ -1,1 +1,0 @@
-aws cloudformation create-stack --stack-name "Kubernetes-Stack" --template-body file://"./capstone-stack.yml"  --parameters file://"./capstone-parameters.json" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" --region=us-east-2
