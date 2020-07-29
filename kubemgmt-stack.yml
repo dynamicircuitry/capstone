@@ -10,16 +10,40 @@ Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
-  AmiSelected:
-    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
-    Type : "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
-    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 Resources:
 
   MgmtHost:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          # Install 
+          apt-get update
+          apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          add-apt-repository \
+          "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) \
+          stable"
+          apt-get update
+          apt-get install -y docker-ce
+          newgrp docker
+          sudo usermod -aG docker ubuntu
+          sudo apt-get update 
+          sudo apt-get install -y apt-transport-https gnupg2
+          curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+          echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+          sudo apt-get update
+          sudo apt-get install -y kubectl
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 
+          chmod +x minikube
+          sudo mkdir -p /usr/local/bin/
+          sudo install minikube /usr/local/bin/
+          sudo -u ubuntu minikube start --driver=docker
+          
+          
+      InstanceType: t3a.small
       SubnetId: 
         Fn::ImportValue: 
           !Sub "${EnvironmentName}-PUB1-SN"
@@ -30,8 +54,7 @@ Resources:
               - - Fn::ImportValue:
                     !Sub "${EnvironmentName}-MGMT-SG"
       KeyName: !Ref 'KeyName'
-      ImageId: !Ref 'AmiSelected'
-
+      ImageId: ami-0a63f96e85105c6d3
 
 Outputs:
 
